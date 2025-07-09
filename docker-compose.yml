@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # Serwis Aplikacji (PHP-FPM + Node.js)
+  app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    container_name: recruitment-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./src:/var/www
+      - ./petstore-client:/var/www/petstore-client
+    networks:
+      - recruitment-network
+
+  # Serwis Web (Nginx)
+  web:
+    image: nginx:alpine
+    container_name: recruitment-web
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./src:/var/www
+      - ./petstore-client:/var/www/petstore-client
+      - ./docker/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - recruitment-network
+    depends_on:
+      - app
+
+networks:
+  recruitment-network:
+    driver: bridge
